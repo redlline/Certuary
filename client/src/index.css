@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+:root,
+[data-theme="dark"] {
+  --bg: #0b0d12;
+  --bg-elevated: #12151c;
+  --bg-card: #161a23;
+  --border: #232834;
+  --text: #c9ccd3;
+  --text-h: #f4f5f7;
+  --text-dim: #6b7280;
+  --accent: #6366f1;
+  --accent-soft: #6366f126;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --red: #ef4444;
+}
+
+[data-theme="light"] {
+  --bg: #f7f7f9;
+  --bg-elevated: #fff;
+  --bg-card: #fff;
+  --border: #e3e4e8;
+  --text: #45464f;
+  --text-h: #14151a;
+  --text-dim: #80828c;
+  --accent: #6366f1;
+  --accent-soft: #6366f11a;
+  --green: #16a34a;
+  --yellow: #ca8a04;
+  --red: #dc2626;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+  margin: 0;
+  font-family: Inter, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  font-size: 14px;
+}
+
+a {
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 8px;
+  outline: none;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+.input:focus {
+  border-color: var(--accent);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tab {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.tab-active {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  color: var(--text-h);
+  cursor: pointer;
+}

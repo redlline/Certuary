@@ -8,9 +8,11 @@
   - `src/` — исходники (восстановлены из dist; раньше были утеряны).
   - `dist/` — результат `tsc`. `dist.orig/` — бэкап оригинальной сборки.
   - `data/` — `fleet.db` (SQLite) и `secret.key` (ключ AES-256-GCM для секретов).
-- `client/` — React+Vite SPA. **Исходников нет** — есть только собранный
-  `client/dist` (минифицированный бандл, патчится вручную).
-  `client/dist.orig/` — бэкап оригинального бандла.
+- `client/` — React 19 + Vite 6 + Tailwind 4 SPA. Исходники восстановлены
+  из минифицированного бандла и лежат в `client/src` (`pages/`,
+  `components/`, `api.ts`, `types.ts`, `hooks/`, `lib/`). Сборка:
+  `npm run build` → `client/dist`. `client/dist.orig/` — бэкап
+  оригинального бандла.
 
 ## Команды
 
@@ -54,6 +56,15 @@ package.json и собирается штатно.)
 API: `sudoPassword` в `POST/PUT /api/servers` и `POST /api/servers/detect-docker`.
 Пустая строка в PUT очищает сохранённый пароль.
 
+### Клиент
+
+```bash
+cd client
+npm install
+npm run dev     # vite (прокси /api → http://localhost:4000)
+npm run build   # tsc -b && vite build → client/dist
+```
+
 ## Деплой (VPS, Ubuntu 22.04, Node 20)
 
 Код живёт в `/opt/certuary` (`server/` + `client/`), служба `certuary.service`
@@ -69,4 +80,5 @@ API: `sudoPassword` в `POST/PUT /api/servers` и `POST /api/servers/detect-dock
 - Бэкап/восстановление: `GET/POST /api/backup` (zip: fleet.db + secret.key).
 - Аутентификация: cookie `certuary_session` (HMAC, 14 дней), пароль админа в
   `settings.admin_password_hash` (scrypt). Если пароль не задан — API открыт.
-- Клиентский бандл был пропатчен напрямую (поле «Пароль sudo» в форме сервера).
+- Клиент восстановлен из бандла в `client/src`; поле «Пароль sudo» в форме
+  сервера — нативное (см. `components/ServerModal.tsx`).

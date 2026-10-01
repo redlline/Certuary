@@ -24,7 +24,8 @@
 
 - **Backend:** Node.js 20+, Express, better-sqlite3, ssh2, ssh2-sftp-client,
   node-forge, zod, node-cron (TypeScript, ESM)
-- **Frontend:** React + Vite (собранный бандл в `client/dist`)
+- **Frontend:** React 19 + Vite 6 + Tailwind 4 + react-router-dom + lucide-react
+  (исходники в `client/src`, собранный бандл в `client/dist`)
 
 ## Запуск
 
@@ -42,6 +43,11 @@ npm start       # http://localhost:4000 (порт через CERTUARY_API_PORT)
 ```bash
 cd server
 npm run dev     # tsx watch src/index.ts
+
+cd client
+npm install
+npm run dev     # vite dev-сервер (прокси /api → :4000)
+npm run build   # tsc -b && vite build → dist/
 ```
 
 ## Деплой

@@ -2,6 +2,7 @@ node_modules/
 server/data/
 server/dist.orig/
 client/dist.orig/
+client/tsconfig.tsbuildinfo
 *.log
 .env
 .env.*
