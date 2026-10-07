@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { validateBundle, deployBundle } from "./certUploadService.js";
+import { validateBundle, deployBundle, sanitizePem } from "./certUploadService.js";
 import { uploadNpmCustomCertificate } from "./npmIntegration.js";
 import { getServer } from "./serverService.js";
 function domainMatchesName(domain, name) {
@@ -81,10 +81,11 @@ export async function deployBulkGroups(groups, selections) {
                 result = { ok: false, message: "Не найден ID хоста NPM для этого сайта" };
             }
             else {
+                const certPem = sanitizePem(group.certPem);
                 const fullChainPem = group.chainPem
-                    ? `${group.certPem.trim()}\n${group.chainPem.trim()}\n`
-                    : group.certPem;
-                result = await uploadNpmCustomCertificate(server, Number(match[1]), site.domain, fullChainPem, group.keyPem);
+                    ? `${certPem.trim()}\n${sanitizePem(group.chainPem).trim()}\n`
+                    : certPem;
+                result = await uploadNpmCustomCertificate(server, Number(match[1]), site.domain, fullChainPem, sanitizePem(group.keyPem));
             }
         }
         else {

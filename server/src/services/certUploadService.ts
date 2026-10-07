@@ -4,6 +4,17 @@ import { testConfig, reload } from "./nginxControl.js";
 import { logEvent } from "./eventService.js";
 import type { CertBundle, ServerRow, SiteRow } from "../types.js";
 
+// Files exported from Windows tools often carry a UTF-8 BOM or leading text
+// before the PEM block. forge tolerates it but nginx doesn't
+// (PEM_read_bio_X509_AUX: "no start line"). Keep only real PEM blocks.
+export function sanitizePem(pem: string): string {
+  const blocks =
+    pem
+      .replace(/^﻿/, "")
+      .match(/-----BEGIN [A-Z ]+-----[\s\S]*?-----END [A-Z ]+-----/g) ?? [];
+  return blocks.map((b) => `${b.trim()}\n`).join("");
+}
+
 export function validateBundle(bundle: CertBundle):
   | { valid: false; reason: string }
   | {
@@ -16,6 +27,17 @@ export function validateBundle(bundle: CertBundle):
         issuer: string | null;
       };
     } {
+  bundle = {
+    certPem: sanitizePem(bundle.certPem),
+    keyPem: sanitizePem(bundle.keyPem),
+    chainPem: bundle.chainPem ? sanitizePem(bundle.chainPem) : undefined,
+  };
+  if (!bundle.certPem) {
+    return { valid: false, reason: "Не удалось прочитать сертификат (.crt/.pem)" };
+  }
+  if (!bundle.keyPem) {
+    return { valid: false, reason: "Не удалось прочитать приватный ключ (.key)" };
+  }
   let cert: forge.pki.Certificate;
   try {
     cert = forge.pki.certificateFromPem(bundle.certPem);
@@ -64,6 +86,11 @@ export async function deployBundle(
   if (!site.cert_path || !site.key_path) {
     return { ok: false, message: "Для этого сайта не определены пути сертификата/ключа на сервере" };
   }
+  bundle = {
+    certPem: sanitizePem(bundle.certPem),
+    keyPem: sanitizePem(bundle.keyPem),
+    chainPem: bundle.chainPem ? sanitizePem(bundle.chainPem) : undefined,
+  };
   const ts = Date.now();
   const certBackup = `${site.cert_path}.bak-${ts}`;
   const keyBackup = `${site.key_path}.bak-${ts}`;

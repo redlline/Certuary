@@ -3,7 +3,7 @@ import multer from "multer";
 import forge from "node-forge";
 import { db } from "../db/index.js";
 import { getServer } from "../services/serverService.js";
-import { validateBundle, deployBundle } from "../services/certUploadService.js";
+import { validateBundle, deployBundle, sanitizePem } from "../services/certUploadService.js";
 import { uploadNpmCustomCertificate } from "../services/npmIntegration.js";
 import { matchBulkGroups, deployBulkGroups } from "../services/bulkCertService.js";
 import { reload } from "../services/nginxControl.js";
@@ -215,10 +215,11 @@ certificatesRouter.post("/sites/:siteId/upload", upload.fields([
         const match = /^npm:proxy-host:(\d+)$/.exec(site.config_file_path ?? "");
         if (!match)
             return res.status(400).json({ error: "Не найден ID хоста NPM для этого сайта" });
+        const certPem = sanitizePem(bundle.certPem);
         const fullChainPem = bundle.chainPem
-            ? `${bundle.certPem.trim()}\n${bundle.chainPem.trim()}\n`
-            : bundle.certPem;
-        result = await uploadNpmCustomCertificate(server, Number(match[1]), site.domain, fullChainPem, bundle.keyPem);
+            ? `${certPem.trim()}\n${sanitizePem(bundle.chainPem).trim()}\n`
+            : certPem;
+        result = await uploadNpmCustomCertificate(server, Number(match[1]), site.domain, fullChainPem, sanitizePem(bundle.keyPem));
     }
     else {
         result = await deployBundle(server, site, bundle);
