@@ -105,19 +105,41 @@ export async function deployBundle(
     const fullChainPem = bundle.chainPem
       ? `${bundle.certPem.trim()}\n${bundle.chainPem.trim()}\n`
       : bundle.certPem;
+    const certBuf = Buffer.from(fullChainPem, "utf8");
+    const keyBuf = Buffer.from(bundle.keyPem, "utf8");
     await withSftp(server, async (sftp) => {
-      await sftp.put(Buffer.from(fullChainPem, "utf8"), isRoot ? site.cert_path! : certTmp);
-      await sftp.put(Buffer.from(bundle.keyPem, "utf8"), isRoot ? site.key_path! : keyTmp);
+      // put() truncates the destination before writing; when the remote FS is
+      // full the write silently produces a 0-byte file — always verify size.
+      await sftp.put(certBuf, isRoot ? site.cert_path! : certTmp);
+      const certStat = await sftp.stat(isRoot ? site.cert_path! : certTmp);
+      if (certStat.size !== certBuf.length) {
+        throw new Error(
+          `SFTP-запись неполная: записано ${certStat.size} из ${certBuf.length} байт. Проверьте свободное место на сервере.`,
+        );
+      }
+      await sftp.put(keyBuf, isRoot ? site.key_path! : keyTmp);
+      const keyStat = await sftp.stat(isRoot ? site.key_path! : keyTmp);
+      if (keyStat.size !== keyBuf.length) {
+        throw new Error(
+          `SFTP-запись неполная: записано ${keyStat.size} из ${keyBuf.length} байт. Проверьте свободное место на сервере.`,
+        );
+      }
     });
     if (isRoot) {
       await execCommand(server, `chmod 644 "${site.cert_path}"; chmod 600 "${site.key_path}"`);
     } else {
-      await execPrivileged(
+      const res = await execPrivileged(
         server,
         `cp "${certTmp}" "${site.cert_path}" && cp "${keyTmp}" "${site.key_path}" && ` +
           `chmod 644 "${site.cert_path}" && chmod 600 "${site.key_path}" && ` +
+          `test $(stat -c%s "${site.cert_path}") -eq ${certBuf.length} && ` +
           `rm -f "${certTmp}" "${keyTmp}"`,
       );
+      if (res.code !== 0) {
+        throw new Error(
+          `Не удалось установить файлы на место (код ${res.code}): ${res.stderr || res.stdout}`,
+        );
+      }
     }
     const testResult = await testConfig(server);
     if (!testResult.ok) {

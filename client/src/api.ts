@@ -128,6 +128,30 @@ export const api = {
   listLogs: (limit = 300, level?: string) =>
     request<LogEntry[]>(`/logs?limit=${limit}${level ? `&level=${level}` : ""}`),
 
+  storageOverview: () =>
+    request<{
+      disks: import("./types").DiskSample[];
+      minio: import("./types").MinioSample[];
+      run: import("./types").RotationRun | null;
+      mcliConfigured: boolean;
+      mcliServerId: string | null;
+    }>(`/storage/overview`),
+  collectStorage: () => request<{ ok: boolean }>(`/storage/collect`, { method: "POST" }),
+  startRotation: (olderThan?: string) =>
+    request<import("./types").RotationRun>(`/storage/rotation/start`, {
+      method: "POST",
+      body: JSON.stringify({ olderThan }),
+    }),
+  confirmRotation: (id: string, step: "originals" | "movies") =>
+    request<{ ok: boolean }>(`/storage/rotation/${id}/confirm`, {
+      method: "POST",
+      body: JSON.stringify({ step }),
+    }),
+  cancelRotation: (id: string) =>
+    request<{ ok: boolean }>(`/storage/rotation/${id}/cancel`, { method: "POST" }),
+  rotationHistory: () =>
+    request<import("./types").RotationRun[]>(`/storage/rotation/history`),
+
   listGroups: () => request<ServerGroup[]>(`/groups`),
   createGroup: (name: string) =>
     request<ServerGroup>(`/groups`, { method: "POST", body: JSON.stringify({ name }) }),

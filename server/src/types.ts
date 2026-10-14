@@ -76,6 +76,32 @@ export interface SettingsRow {
   alert_thresholds: string;
   admin_password_hash: string | null;
   theme: string;
+  mcli_server_id: string | null;
+  rotation_dir: string;
+  rotation_older_than: string;
+  rotation_auto: number;
+  rotation_trigger_pct: number;
+  disk_warn_pct: number;
+  disk_crit_pct: number;
+}
+
+export interface RotationRunRow {
+  id: string;
+  status: string;
+  older_than: string;
+  total_ids: number;
+  detail: string | null;
+  error: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface RotationProgressRow {
+  run_id: string;
+  target: string;
+  last_id: string | null;
+  done_count: number;
+  status: string;
 }
 
 export interface ExecResult {

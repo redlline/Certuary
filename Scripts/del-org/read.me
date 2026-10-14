@@ -1,0 +1,25 @@
+###
+1. mcli find mercury/original --older-than 7d  > 7d
+
+2. cat 7d | awk -F"/" '{print $3}' > list.ids
+
+3. sort -n list.ids | uniq > list.mercury
+
+4. run del-mp4.sh
+
+5. run v-s-j.sh 
+
+delete mp4 files
+6. screen -r m >> run  (bash del_mp4.csv)
+
+###
+trensfer ts to minio 
+before transfer modify  wgt.time
+1. screen -r j >> run mer_2_jup.sh
+2. screen -r s >> run mer_2_sat.sh 
+3. screen -r v >> run mer_2_ven.sh 
+
+###
+after transfering all ts to 3 minios
+1. run mercury-del-movies.sh 
+2. screen -r m >> run bash del_mercury.csv

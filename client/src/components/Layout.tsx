@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   CloudUpload,
+  Database,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -66,6 +67,7 @@ export function Layout() {
       <NavItem to="/servers" icon={<ServerCog size={16} />} label="Серверы" onNavigate={() => setMenuOpen(false)} />
       <NavItem to="/expiring" icon={<TriangleAlert size={16} />} label="Все истекающие" onNavigate={() => setMenuOpen(false)} />
       <NavItem to="/bulk-upload" icon={<CloudUpload size={16} />} label="Загрузка пачкой" onNavigate={() => setMenuOpen(false)} />
+      <NavItem to="/storage" icon={<Database size={16} />} label="Хранилище" onNavigate={() => setMenuOpen(false)} />
       <NavItem to="/events" icon={<ScrollText size={16} />} label="Журнал событий" onNavigate={() => setMenuOpen(false)} />
       <NavItem to="/logs" icon={<Terminal size={16} />} label="Логи системы" onNavigate={() => setMenuOpen(false)} />
       <NavItem to="/settings" icon={<Settings size={16} />} label="Настройки" onNavigate={() => setMenuOpen(false)} />

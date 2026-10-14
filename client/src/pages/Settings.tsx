@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Download, KeyRound, Send, Upload } from "lucide-react";
 import { api } from "../api";
-import type { AppSettings } from "../types";
+import type { AppSettings, ServerRow } from "../types";
 
 function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -31,11 +31,13 @@ export function SettingsPage() {
   const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [saveResult, setSaveResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [servers, setServers] = useState<ServerRow[]>([]);
 
   async function load() {
     const s = await api.getSettings();
     setSettings(s);
     setThresholds(s.alertThresholds.join(", "));
+    setServers(await api.listServers().catch(() => []));
   }
 
   useEffect(() => {
@@ -58,6 +60,13 @@ export function SettingsPage() {
         telegramBotToken: settings.telegramBotToken,
         telegramChatId: settings.telegramChatId,
         alertThresholds,
+        mcliServerId: settings.mcliServerId,
+        rotationDir: settings.rotationDir,
+        rotationOlderThan: settings.rotationOlderThan,
+        rotationAuto: settings.rotationAuto,
+        rotationTriggerPct: settings.rotationTriggerPct,
+        diskWarnPct: settings.diskWarnPct,
+        diskCritPct: settings.diskCritPct,
       });
       setSettings(updated);
       setThresholds(updated.alertThresholds.join(", "));
@@ -161,6 +170,90 @@ export function SettingsPage() {
               {testResult.ok ? "Сообщение отправлено" : testResult.error}
             </div>
           )}
+        </form>
+      </SettingsSection>
+
+      <SettingsSection title="Хранилище / MinIO-архив">
+        <p className="text-xs text-[var(--text-dim)] mb-3">
+          Мониторинг дисков и миграция mercury → venus/saturn/jupiter выполняются по SSH на выбранном
+          сервере с настроенным mcli.
+        </p>
+        <form onSubmit={save} className="flex flex-col gap-3">
+          <Field label="Сервер с mcli">
+            <select
+              className="input"
+              value={settings.mcliServerId ?? ""}
+              onChange={(e) => setSettings({ ...settings, mcliServerId: e.target.value || null })}
+            >
+              <option value="">— не выбран —</option>
+              {servers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.host}:{s.port})
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Каталог пайплайна на этом сервере">
+            <input
+              className="input"
+              value={settings.rotationDir ?? ""}
+              onChange={(e) => setSettings({ ...settings, rotationDir: e.target.value })}
+              placeholder="/home/belet/del-org"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Мигрировать старше">
+              <input
+                className="input"
+                value={settings.rotationOlderThan ?? "7d"}
+                onChange={(e) => setSettings({ ...settings, rotationOlderThan: e.target.value })}
+                placeholder="7d"
+              />
+            </Field>
+            <Field label="Авто-запуск при заполнении, %">
+              <input
+                className="input"
+                type="number"
+                min={1}
+                max={100}
+                value={settings.rotationTriggerPct ?? 85}
+                onChange={(e) => setSettings({ ...settings, rotationTriggerPct: Number(e.target.value) })}
+              />
+            </Field>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-[var(--text-dim)]">
+            <input
+              type="checkbox"
+              checked={settings.rotationAuto ?? false}
+              onChange={(e) => setSettings({ ...settings, rotationAuto: e.target.checked })}
+            />
+            Автоматически запускать миграцию при заполнении mercury
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Предупреждение о диске, %">
+              <input
+                className="input"
+                type="number"
+                min={1}
+                max={100}
+                value={settings.diskWarnPct ?? 80}
+                onChange={(e) => setSettings({ ...settings, diskWarnPct: Number(e.target.value) })}
+              />
+            </Field>
+            <Field label="Критическое заполнение, %">
+              <input
+                className="input"
+                type="number"
+                min={1}
+                max={100}
+                value={settings.diskCritPct ?? 90}
+                onChange={(e) => setSettings({ ...settings, diskCritPct: Number(e.target.value) })}
+              />
+            </Field>
+          </div>
+          <button type="submit" disabled={saving} className="btn-primary w-fit px-4">
+            {saving ? "Сохранение..." : "Сохранить"}
+          </button>
         </form>
       </SettingsSection>
 

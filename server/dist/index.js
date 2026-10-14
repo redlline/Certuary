@@ -14,6 +14,8 @@ import { authRouter } from "./routes/auth.js";
 import { backupRouter } from "./routes/backup.js";
 import { logsRouter } from "./routes/logs.js";
 import { groupsRouter } from "./routes/groups.js";
+import { storageRouter } from "./routes/storage.js";
+import { resumeActiveRun } from "./services/rotationService.js";
 import { startScheduler } from "./scheduler.js";
 import { requireAuth } from "./auth.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -43,6 +45,7 @@ app.use("/api/settings", requireAuth, settingsRouter);
 app.use("/api/backup", requireAuth, backupRouter);
 app.use("/api/logs", requireAuth, logsRouter);
 app.use("/api/groups", requireAuth, groupsRouter);
+app.use("/api/storage", requireAuth, storageRouter);
 const clientDist = path.join(__dirname, "..", "..", "client", "dist");
 if (fs.existsSync(clientDist)) {
     // hashed asset filenames (assets/*) can be cached forever; index.html must always be revalidated
@@ -63,5 +66,6 @@ if (fs.existsSync(clientDist)) {
 app.listen(PORT, () => {
     console.log(`Certuary API listening on http://localhost:${PORT}`);
     startScheduler();
+    resumeActiveRun();
 });
 //# sourceMappingURL=index.js.map

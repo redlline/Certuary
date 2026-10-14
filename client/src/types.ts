@@ -89,6 +89,64 @@ export interface AppSettings {
   telegramBotToken: string | null;
   telegramChatId: string | null;
   alertThresholds: number[];
+  mcliServerId?: string | null;
+  rotationDir?: string;
+  rotationOlderThan?: string;
+  rotationAuto?: boolean;
+  rotationTriggerPct?: number;
+  diskWarnPct?: number;
+  diskCritPct?: number;
+}
+
+export interface DiskSample {
+  server_id: string;
+  server_name: string;
+  mount: string;
+  total_bytes: number;
+  used_bytes: number;
+  use_pct: number;
+  created_at: string;
+}
+
+export interface MinioSample {
+  alias: string;
+  used_bytes: number | null;
+  total_bytes: number | null;
+  use_pct: number | null;
+  objects: number | null;
+  created_at: string;
+}
+
+export type RotationStatus =
+  | "preparing"
+  | "awaiting_delete_originals"
+  | "deleting_originals"
+  | "copying"
+  | "verifying"
+  | "awaiting_delete_movies"
+  | "deleting_movies"
+  | "done"
+  | "failed"
+  | "cancelled";
+
+export interface RotationProgress {
+  run_id: string;
+  target: string;
+  last_id: string | null;
+  done_count: number;
+  status: string;
+}
+
+export interface RotationRun {
+  id: string;
+  status: RotationStatus;
+  older_than: string;
+  total_ids: number;
+  detail: string | null;
+  error: string | null;
+  created_at: string;
+  updated_at: string | null;
+  progress?: RotationProgress[];
 }
 
 export interface CertInfo {

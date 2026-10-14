@@ -133,4 +133,55 @@ addColumnIfMissing("servers", "group_id", "TEXT");
 }
 // optional sudo password for non-root SSH users (escalation via sudo -S)
 addColumnIfMissing("servers", "sudo_password_encrypted", "TEXT");
+// storage monitoring + MinIO archive rotation
+db.exec(`
+CREATE TABLE IF NOT EXISTS disk_samples (
+  id TEXT PRIMARY KEY,
+  server_id TEXT NOT NULL,
+  mount TEXT NOT NULL,
+  total_bytes INTEGER,
+  used_bytes INTEGER,
+  use_pct REAL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_disk_samples_server ON disk_samples(server_id, created_at);
+
+CREATE TABLE IF NOT EXISTS minio_samples (
+  id TEXT PRIMARY KEY,
+  alias TEXT NOT NULL,
+  used_bytes INTEGER,
+  total_bytes INTEGER,
+  use_pct REAL,
+  objects INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_minio_samples_alias ON minio_samples(alias, created_at);
+
+CREATE TABLE IF NOT EXISTS rotation_runs (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL,
+  older_than TEXT NOT NULL DEFAULT '7d',
+  total_ids INTEGER NOT NULL DEFAULT 0,
+  detail TEXT,
+  error TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS rotation_progress (
+  run_id TEXT NOT NULL,
+  target TEXT NOT NULL,
+  last_id TEXT,
+  done_count INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  PRIMARY KEY (run_id, target)
+);
+`);
+addColumnIfMissing("settings", "mcli_server_id", "TEXT");
+addColumnIfMissing("settings", "rotation_dir", "TEXT NOT NULL DEFAULT '/home/belet/del-org'");
+addColumnIfMissing("settings", "rotation_older_than", "TEXT NOT NULL DEFAULT '7d'");
+addColumnIfMissing("settings", "rotation_auto", "INTEGER NOT NULL DEFAULT 0");
+addColumnIfMissing("settings", "rotation_trigger_pct", "REAL NOT NULL DEFAULT 85");
+addColumnIfMissing("settings", "disk_warn_pct", "REAL NOT NULL DEFAULT 80");
+addColumnIfMissing("settings", "disk_crit_pct", "REAL NOT NULL DEFAULT 90");
 //# sourceMappingURL=index.js.map

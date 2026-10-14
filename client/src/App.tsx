@@ -9,6 +9,7 @@ import { LogsPage } from "./pages/Logs";
 import { ServerDetailPage } from "./pages/ServerDetail";
 import { ServersPage } from "./pages/Servers";
 import { SettingsPage } from "./pages/Settings";
+import { StoragePage } from "./pages/Storage";
 
 export function App() {
   return (
@@ -21,6 +22,7 @@ export function App() {
             <Route path="/servers/:id" element={<ServerDetailPage />} />
             <Route path="/expiring" element={<ExpiringPage />} />
             <Route path="/bulk-upload" element={<BulkUploadPage />} />
+            <Route path="/storage" element={<StoragePage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/logs" element={<LogsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
